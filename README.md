@@ -5,13 +5,13 @@ CRD&amp;Operator for running pipy in k8s.
 
 Run pipy on a fresh kubernetes:
 
-~~~
+```shell
 kubectl apply -f etc/cert-manager-v1.1.0.yaml
 kubectl apply -f artifact/pipy-operator.yaml
 kubectl apply -f config/samples/standalone/001-echo.yaml
 kubectl apply -f config/samples/ingress/008-routing.yaml
 kubectl apply -f config/samples/sidecar/007-deployment-pipy.yaml
-~~~
+```
 
 ## Sample output
 Output while running on k3s, for reference only:
