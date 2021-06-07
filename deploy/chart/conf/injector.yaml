@@ -1,0 +1,83 @@
+containers:
+- name: sidecar
+  image: {{ .ProxyImage }}
+  imagePullPolicy: Always
+  ports:
+  - containerPort: {{ .ProxyPort }}
+  env:
+  - name: PIPY_CONFIG_PATH
+    value: "/sidecar/config"
+  - name: PIPY_CONFIG_NAME
+    value: "config.js"
+  - name: PIPY_CONFIG
+    value: "$(PIPY_CONFIG_PATH)/$(PIPY_CONFIG_NAME)"
+  - name: PIPY_PORT
+    value: "{{ .ProxyPort }}"
+  - name: PIPY_TARGET_PORT
+    value: "{{ .TargetPort }}"
+  - name: _pod_ns
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.namespace
+  - name: _pod_nodeName
+    valueFrom:
+      fieldRef:
+        fieldPath: spec.nodeName
+  - name: _pod_name
+    valueFrom:
+      fieldRef:
+        fieldPath: metadata.name
+  - name: _pod_IP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.podIP
+  - name: _pod_hostIP
+    valueFrom:
+      fieldRef:
+        fieldPath: status.hostIP
+  {{ range $name, $value := .ProxyLabels2Envs }}
+  - name: K8S_LABELS.{{ $name }}
+    value: {{ $value }}
+  {{ end }}
+  command: ["/bin/sh"]
+  args:
+  - -c
+  - >-
+      cat ${PIPY_CONFIG} &&
+      echo "starting pipy sidecar with ${PIPY_CONFIG}..." &&
+      /usr/local/bin/pipy ${PIPY_CONFIG} --reuse-port --log-level=debug
+  volumeMounts:
+  - mountPath: /sidecar
+    name: shared-proxy-res
+initContainers:
+- name: proxy-init
+  image: {{ .ProxyInitImage }}
+  imagePullPolicy: Always
+  env:
+  - name: PIPY_CONFIG_PATH
+    value: "/sidecar/config"
+  - name: PIPY_CONFIG_NAME
+    value: "config.js"
+  - name: PIPY_TPL_NAME
+    value: "config.tpl"
+  - name: PIPY_CONFIG
+    value: "$(PIPY_CONFIG_PATH)/$(PIPY_CONFIG_NAME)"
+  - name: PIPY_TPL
+    value: "$(PIPY_CONFIG_PATH)/$(PIPY_TPL_NAME)"
+  command: ["/bin/sh"]
+  args:
+  - -c
+  - >-
+      mkdir -p -v ${PIPY_CONFIG_PATH} &&
+      cp -fv /config/* ${PIPY_CONFIG_PATH} &&
+      ls -l ${PIPY_CONFIG_PATH} &&
+      cat ${PIPY_TPL} &&
+      ls -l /proxy-init &&
+      /proxy-init --proxy-port={{ .ProxyPort }} --target-port={{ .TargetPort }} &&
+      cat ${PIPY_CONFIG}
+  volumeMounts:
+  - name: shared-proxy-res
+    mountPath: /sidecar
+volumes:
+- emptyDir: {}
+  name: shared-proxy-res

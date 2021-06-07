@@ -13,6 +13,12 @@ kubectl apply -f samples/ingress/008-routing.yaml
 kubectl apply -f samples/sidecar/007-deployment-pipy.yaml
 ~~~
 
+Or with Helm3:
+
+~~~
+helm install pipy-operator deploy/chart
+~~~
+
 ## Sample output
 Output while running on k3s, for reference only:
 

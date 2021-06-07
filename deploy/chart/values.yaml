@@ -1,0 +1,30 @@
+
+replicaCount: 1
+
+flomesh:
+  manager:
+    repository: flomesh/operator-manager
+    tag: 0.2.0
+
+  pjs:
+    repository: flomesh/pipy-pjs
+    tag: latest
+
+  proxy_init:
+    repository: flomesh/proxy-init
+    tag: 0.2.0
+
+  injector:
+    repository: flomesh/proxy-injector
+    tag: 0.2.0
+
+cert_manager:
+  cainjector:
+    repository: flomesh/cert-manager-cainjector
+    tag: v1.3.1
+  controller:
+    repository: flomesh/cert-manager-controller
+    tag: v1.3.1
+  webhook: 
+    repository: flomesh/cert-manager-webhook
+    tag: v1.3.1

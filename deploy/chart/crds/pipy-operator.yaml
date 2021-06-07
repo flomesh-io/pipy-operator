@@ -1,0 +1,212 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: flomesh-system/flomesh-serving-cert
+    controller-gen.kubebuilder.io/version: v0.4.1
+  name: proxies.flomesh.io
+spec:
+  group: flomesh.io
+  names:
+    kind: Proxy
+    listKind: ProxyList
+    plural: proxies
+    shortNames:
+    - px
+    singular: proxy
+  scope: Namespaced
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.mode
+      name: Mode
+      type: string
+    - jsonPath: .spec.tplMode
+      name: TplMode
+      priority: 1
+      type: string
+    - jsonPath: .spec.port
+      name: Port
+      type: integer
+    - jsonPath: .spec.image
+      name: Image
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: Proxy is the Schema for the proxies API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ProxySpec defines the desired state of Proxy
+            properties:
+              config:
+                additionalProperties:
+                  type: string
+                description: Config contains the piped configuration data in case the TemplateMode is Raw. Each key must consist of alphanumeric characters, '-', '_' or '.'. Values with non-UTF-8 byte sequences must use the BinaryData field.
+                type: object
+              configMountDir:
+                description: ConfigMountDir is the path where the configmap will be mounted Defaults to /etc/pipy/operator
+                type: string
+              configMountFileName:
+                description: ConfigMountFileName is the name of pipy configuration file Defaults to config.js
+                type: string
+              image:
+                description: Image is the container image to run.  Image must have a tag. Defaults to flomesh/pipy-pjs:latest
+                type: string
+              mode:
+                description: 'FlomeshMode specifies the mode of creating FLomesh topology. Valid values are: - "Standalone" (default): a standalone Flomesh; - "Inbound": works as sidecar and injected into each selected pod, proxy the inbound traffic; - "Outbound": works as sidecar and injected into each selected pod, proxy the outbound traffic; - "Sidecar": works as sidecar and injected into each selected pod, proxy both inbound and outbound traffic; - "Ingress": works as DaemonSet ans expose HostPort, proxy both inbound and outbound traffic;'
+                enum:
+                - Standalone
+                - Inbound
+                - Outbound
+                - Ingress
+                - Sidecar
+                type: string
+              port:
+                description: Number of Port to expose on the host. In Ingress Mode, it's the hostPort. If specified, this must be a valid port number, 0 < x < 65536. Defaults to 8080
+                format: int32
+                maximum: 65535
+                minimum: 1
+                type: integer
+              replicas:
+                description: Replicas is the number of replicas to maintain, it's useless in Ingress Mode Defaults to 1
+                format: int32
+                minimum: 1
+                type: integer
+              tpl:
+                description: Tpl is the built-in template name, will be translated to a valid file path and name transparently
+                type: string
+              tplMode:
+                description: 'TemplateMode specifies the mode of handling piped configuration Valid values are: - "BuiltIn" (default): piped has some pre-configured configuration template to ease the usage, this mode will enable the operator to load the configuration from the image; - "Raw": in some cases the pre-configured configuration is not suitable for the requirements, the raw mode let user provides a complete configuration instead of using the built-in;'
+                enum:
+                - BuiltIn
+                - Raw
+                type: string
+            type: object
+          status:
+            description: ProxyStatus defines the observed state of Proxy
+            properties:
+              healthyReplicas:
+                description: 'INSERT ADDITIONAL STATUS FIELD - define observed state of cluster Important: Run "make" to regenerate code after modifying this file'
+                format: int32
+                type: integer
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
+---
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  annotations:
+    cert-manager.io/inject-ca-from: flomesh-system/flomesh-serving-cert
+    controller-gen.kubebuilder.io/version: v0.4.1
+  name: proxyprofiles.flomesh.io
+spec:
+  group: flomesh.io
+  names:
+    kind: ProxyProfile
+    listKind: ProxyProfileList
+    plural: proxyprofiles
+    shortNames:
+    - pf
+    singular: proxyprofile
+  scope: Cluster
+  versions:
+  - additionalPrinterColumns:
+    - jsonPath: .spec.selector
+      name: Selector
+      type: string
+    - jsonPath: .spec.namespace
+      name: Namespace
+      type: string
+    - jsonPath: .metadata.creationTimestamp
+      name: Age
+      type: date
+    name: v1alpha1
+    schema:
+      openAPIV3Schema:
+        description: ProxyProfile is the Schema for the proxyprofiles API
+        properties:
+          apiVersion:
+            description: 'APIVersion defines the versioned schema of this representation of an object. Servers should convert recognized schemas to the latest internal value, and may reject unrecognized values. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#resources'
+            type: string
+          kind:
+            description: 'Kind is a string value representing the REST resource this object represents. Servers may infer this from the endpoint the client submits requests to. Cannot be updated. In CamelCase. More info: https://git.k8s.io/community/contributors/devel/sig-architecture/api-conventions.md#types-kinds'
+            type: string
+          metadata:
+            type: object
+          spec:
+            description: ProxyProfileSpec defines the desired state of ProxyProfile
+            properties:
+              config:
+                additionalProperties:
+                  type: string
+                description: Config contains the configuration data. Each key must consist of alphanumeric characters, '-', '_' or '.'. Values with non-UTF-8 byte sequences must use the BinaryData field.
+                type: object
+              namespace:
+                description: Namespace ProxyProfile will only match the pods in the namespace otherwise, match pods in all namespaces(in cluster)
+                type: string
+              selector:
+                description: selector is a label query over pods that should be injected
+                properties:
+                  matchExpressions:
+                    description: matchExpressions is a list of label selector requirements. The requirements are ANDed.
+                    items:
+                      description: A label selector requirement is a selector that contains values, a key, and an operator that relates the key and values.
+                      properties:
+                        key:
+                          description: key is the label key that the selector applies to.
+                          type: string
+                        operator:
+                          description: operator represents a key's relationship to a set of values. Valid operators are In, NotIn, Exists and DoesNotExist.
+                          type: string
+                        values:
+                          description: values is an array of string values. If the operator is In or NotIn, the values array must be non-empty. If the operator is Exists or DoesNotExist, the values array must be empty. This array is replaced during a strategic merge patch.
+                          items:
+                            type: string
+                          type: array
+                      required:
+                      - key
+                      - operator
+                      type: object
+                    type: array
+                  matchLabels:
+                    additionalProperties:
+                      type: string
+                    description: matchLabels is a map of {key,value} pairs. A single {key,value} in the matchLabels map is equivalent to an element of matchExpressions, whose key field is "key", the operator is "In", and the values array contains only "value". The requirements are ANDed.
+                    type: object
+                type: object
+            type: object
+          status:
+            description: ProxyProfileStatus defines the observed state of ProxyProfile
+            type: object
+        type: object
+    served: true
+    storage: true
+    subresources:
+      status: {}
+status:
+  acceptedNames:
+    kind: ""
+    plural: ""
+  conditions: []
+  storedVersions: []
